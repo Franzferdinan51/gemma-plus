@@ -1,5 +1,5 @@
-appId: com.ammaar.gemmachat
-productName: Gemma Chat
+appId: com.gemma-plus.app
+productName: Gemma Plus
 directories:
   buildResources: build
 files:
@@ -15,10 +15,24 @@ mac:
   icon: build/icon.icns
   target:
     - target: dmg
-      arch: [arm64]
+      arch: [arm64, x64]
   category: public.app-category.productivity
   hardenedRuntime: true
   gatekeeperAssess: false
+linux:
+  icon: build/icon.png
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Development
+  maintainer: DuckBot
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
 dmg:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

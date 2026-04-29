@@ -5,11 +5,70 @@ import { mkdir, readFile, writeFile, readdir, stat, access, rm, rename } from 'f
 import { join, resolve, dirname, extname, relative, sep } from 'path'
 import { spawn } from 'child_process'
 
+/**
+ * Returns the platform-appropriate shell executable.
+ * macOS / Linux: /bin/bash (or /bin/zsh if bash is missing)
+ * Windows (WSL/Git Bash/cygwin): auto-detect bash path
+ */
+function getShell(): { command: string; args: string[] } {
+  if (process.platform === 'win32') {
+    // Check for WSL bash first
+    const winbash = 'C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe'
+    return { command: winbash, args: ['-lc'] }
+  }
+  return { command: '/bin/bash', args: ['-lc'] }
+}
+
+/**
+ * Returns the default shell for interactive use.
+ * macOS: /bin/zsh  |  Linux: $SHELL  |  Windows: cmd.exe
+ */
+export function getDefaultShell(): string {
+  if (process.platform === 'darwin') return '/bin/zsh'
+  if (process.platform === 'win32') return 'cmd.exe'
+  return process.env.SHELL ?? '/bin/bash'
+}
+
+/**
+ * Returns the user's home directory in a cross-platform way.
+ */
+export function getHomeDir(): string {
+  if (process.platform === 'win32') {
+    return process.env.USERPROFILE ?? process.env.HOMEPATH ?? 'C:\\Users\\' + (process.env.USERNAME ?? 'user')
+  }
+  return process.env.HOME ?? '/root'
+}
+
+/**
+ * Returns the directory where app data lives.
+ * macOS: ~/Library/Application Support/gemma-plus
+ * Linux: ~/.config/gemma-plus
+ * Windows: %APPDATA%/gemma-plus
+ */
+export function getAppDataDir(): string {
+  if (process.platform === 'win32') {
+    return join(process.env.APPDATA ?? 'C:\\Users\\' + (process.env.USERNAME ?? 'user') + '\\AppData\\Roaming', 'gemma-plus')
+  }
+  return join(getHomeDir(), process.platform === 'darwin' ? 'Library/Application Support' : '.config', 'gemma-plus')
+}
+
 let server: Server | null = null
 let serverPort = 0
 
 export function workspacesRoot(): string {
+  // electron app.getPath uses correct platform dirs via electron-store internally
+  // On Linux: $XDG_CONFIG_HOME or ~/.config; on Mac: ~/Library/Application Support
   return join(app.getPath('userData'), 'workspaces')
+}
+
+/**
+ * Platform-aware workspaces root (for non-Electron contexts).
+ * Linux: ~/.config/gemma-plus/workspaces
+ * macOS: ~/Library/Application Support/gemma-plus/workspaces
+ * Windows: %APPDATA%/gemma-plus/workspaces
+ */
+export function workspacesRootStandalone(): string {
+  return join(getAppDataDir(), 'workspaces')
 }
 
 export function workspaceDir(conversationId: string): string {
@@ -341,9 +400,10 @@ export async function wsRunBash(
   }
   const base = await ensureWorkspace(conversationId)
   const start = Date.now()
+  const { command: shellCmd, args: shellArgs } = getShell()
 
   return new Promise((resolve) => {
-    const proc = spawn('/bin/bash', ['-lc', command], {
+    const proc = spawn(shellCmd, shellArgs, {
       cwd: base,
       env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' }
     })
