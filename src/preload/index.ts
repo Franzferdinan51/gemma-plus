@@ -8,7 +8,8 @@ import type {
 } from '../shared/types'
 
 const api = {
-  startSetup: (model: string): Promise<void> => ipcRenderer.invoke('setup:start', model),
+  startSetup: (model: string, provider?: string): Promise<void> =>
+    ipcRenderer.invoke('setup:start', model, provider ?? 'mlx'),
 
   switchModel: (model: string): Promise<void> => ipcRenderer.invoke('model:switch', model),
 

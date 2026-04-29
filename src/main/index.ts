@@ -113,10 +113,28 @@ async function ensureMLXRunning(model: string): Promise<string> {
   return pythonToUse
 }
 
-async function handleSetup(model: string): Promise<void> {
+async function handleSetup(model: string, provider: ProviderType = 'mlx'): Promise<void> {
   try {
     send('setup:status', { stage: 'checking', message: 'Checking system…' })
-    await ensureMLXRunning(model)
+
+    if (provider === 'mlx') {
+      await ensureMLXRunning(model)
+    } else if (provider === 'lmstudio') {
+      send('setup:status', { stage: 'connecting-lmstudio', message: 'Connecting to LM Studio…' })
+      const { checkProviderAvailability } = await import('./providers')
+      const avail = await checkProviderAvailability()
+      if (!avail['lmstudio']) {
+        throw new Error('LM Studio is not running. Start LM Studio and click "Server → Start server".')
+      }
+    } else if (provider === 'ollama') {
+      send('setup:status', { stage: 'connecting-ollama', message: 'Connecting to Ollama…' })
+      const { checkProviderAvailability } = await import('./providers')
+      const avail = await checkProviderAvailability()
+      if (!avail['ollama']) {
+        throw new Error('Ollama is not running. Run ollama serve in your terminal.')
+      }
+    }
+
     send('setup:status', { stage: 'ready', message: 'Ready to chat.' })
   } catch (e) {
     send('setup:status', { stage: 'error', message: 'Setup failed', error: (e as Error).message })
@@ -392,7 +410,9 @@ app.whenReady().then(async () => {
 
   // ---- IPC handlers ----
 
-  ipcMain.handle('setup:start', async (_e, model: string) => { await handleSetup(model) })
+  ipcMain.handle('setup:start', async (_e, model: string, provider: ProviderType = 'mlx') => {
+    await handleSetup(model, provider)
+  })
 
   ipcMain.handle('model:switch', async (_e, model: string) => {
     const label = AVAILABLE_MODELS.find((m) => m.name === model)?.label ?? model

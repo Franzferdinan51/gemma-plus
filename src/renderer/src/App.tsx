@@ -99,13 +99,13 @@ export default function App() {
           model={state.model}
           models={AVAILABLE_MODELS}
           onModelChange={(m) => setState((s) => (s.phase === 'setup' ? { ...s, model: m } : s))}
-          onStart={(model) => {
+          onStart={(model, provider) => {
             setState({
               phase: 'setup',
               status: { stage: 'checking', message: 'Checking system…' },
               model
             })
-            window.api.startSetup(model)
+            window.api.startSetup(model, provider ?? 'mlx')
           }}
         />
       </div>

@@ -3,6 +3,8 @@ export type SetupStage =
   | 'installing-mlx'
   | 'starting-mlx'
   | 'downloading-model'
+  | 'connecting-lmstudio'
+  | 'connecting-ollama'
   | 'ready'
   | 'error'
 
