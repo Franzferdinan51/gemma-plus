@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { SetupStatus } from '@shared/types'
-import { AVAILABLE_MODELS } from '@shared/types'
+import { AVAILABLE_MODELS, type ProviderType } from '@shared/types'
 import Setup from './components/Setup'
 import Chat from './components/Chat'
 
@@ -74,10 +74,10 @@ export default function App() {
     }
   }, [state])
 
-  const handleStartChat = useCallback((selectedModel: string) => {
+  const handleStartChat = useCallback((selectedModel: string, provider: ProviderType) => {
     setModel(selectedModel)
     setState({ phase: 'setup', status: { stage: 'checking', message: 'Checking system…' }, model: selectedModel })
-    window.api.startSetup(selectedModel)
+    window.api.startSetup(selectedModel, provider)
   }, [])
 
   // Agent Teams actions
@@ -139,7 +139,7 @@ export default function App() {
           status={state.status}
           model={state.model}
           onModelChange={(m) => setModel(m)}
-          onStart={(m, p) => { setModel(m); handleStartChat(m) }}
+          onStart={(m, p) => { setModel(m); handleStartChat(m, p) }}
         />
       </div>
     )
