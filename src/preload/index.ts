@@ -94,6 +94,8 @@ const api = {
     ipcRenderer.invoke('agent-teams:spawn', task),
   agentTeamsStatus: (): Promise<string> =>
     ipcRenderer.invoke('agent-teams:status'),
+  mmxRun: (args: string[]): Promise<string> =>
+    ipcRenderer.invoke('mmx:run', args),
   agentTeamsDelegate: (agent: string, task: string): Promise<string> =>
     ipcRenderer.invoke('agent-teams:delegate', { agent, task }),
 

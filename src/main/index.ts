@@ -487,6 +487,22 @@ app.whenReady().then(async () => {
     return runAgentTeamsCommand('delegate', task, agent)
   })
 
+  ipcMain.handle('mmx:run', async (_e, args: string[]) => {
+    return new Promise<string>((resolve, reject) => {
+      const { spawn } = require('child_process')
+      const proc = spawn('mmx', args, { timeout: 90_000 })
+      let stdout = '', stderr = ''
+      proc.stdout?.on('data', (d: Buffer) => { stdout += d.toString() })
+      proc.stderr?.on('data', (d: Buffer) => { stderr += d.toString() })
+      proc.on('error', (e: Error) => reject(new Error(e.message)))
+      proc.on('exit', (code: number | null) => {
+        if (code === 0) resolve(stdout)
+        else reject(new Error(stderr || `Exited ${code}`))
+      })
+      setTimeout(() => { proc.kill(); reject(new Error('mmx timed out after 90s')) }, 90_000)
+    })
+  })
+
   // ---- Agent Mesh ----
   ipcMain.handle('mesh:status', async () => { return getMeshStatus() })
   ipcMain.handle('mesh:broadcast', async (_e, message: string) => { return meshBroadcast(message) })
