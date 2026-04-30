@@ -471,8 +471,12 @@ app.whenReady().then(async () => {
 
   // ---- Provider status ----
   ipcMain.handle('providers:status', async () => {
-    const { checkProviderAvailability } = await import('./providers')
-    return checkProviderAvailability()
+    const { checkProviderAvailability, lmstudioProvider } = await import('./providers')
+    const [avail, lmModels] = await Promise.all([
+      checkProviderAvailability(),
+      lmstudioProvider.listModels().catch(() => [])
+    ])
+    return { ...avail, lmstudioModels: lmModels }
   })
 
   // ---- Agent Teams ----

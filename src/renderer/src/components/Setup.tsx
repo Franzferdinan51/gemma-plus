@@ -99,13 +99,9 @@ function WelcomeScreen({ model, onModelChange, onStart }: Props) {
     window.api.getProvidersStatus().then((s) => {
       setLmDetected(s['lmstudio'] ?? false)
       setOlDetected(s['ollama'] ?? false)
-      const lm = AVAILABLE_MODELS.filter(
-        (m) => m.provider === 'lmstudio' && (s['lmstudio'] ?? false)
-      )
-      const ol = AVAILABLE_MODELS.filter(
-        (m) => m.provider === 'ollama' && (s['ollama'] ?? false)
-      )
-      setAvailLMStudio(lm)
+      const lm = (s['lmstudioModels'] as string[]) ?? []
+      const ol = AVAILABLE_MODELS.filter((m) => m.provider === 'ollama' && (s['ollama'] ?? false))
+      setAvailLMStudio(lm.map((id) => ({ name: `lmstudio-live/${id}`, label: id.split('/').pop() ?? id, size: '', sizeBytes: 0, description: 'Loaded in LM Studio', provider: 'lmstudio' as const })))
       setAvailOllama(ol)
       setLoading(false)
     })

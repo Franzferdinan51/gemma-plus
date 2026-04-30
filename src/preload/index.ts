@@ -86,7 +86,7 @@ const api = {
     ipcRenderer.invoke('audio:transcribe', { base64, model }),
 
   // Provider status
-  getProvidersStatus: (): Promise<Record<string, boolean>> =>
+  getProvidersStatus: (): Promise<Record<string, unknown>> =>
     ipcRenderer.invoke('providers:status'),
 
   // Agent Teams
