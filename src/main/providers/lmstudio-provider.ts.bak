@@ -38,7 +38,7 @@ export const lmstudioProvider: ModelProvider = {
   },
 
   async *chatStream(opts) {
-    const res = await lmFetch(`/chat/completions`, {
+    const res = await fetch(`${LMSTUDIO_BASE}/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({

@@ -50,10 +50,9 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0e0e0e',
-    titleBarStyle: 'hiddenInset',
+    // vibrancy causes blank windows on macOS 26+
+    // titleBarStyle: 'hiddenInset', // can cause issues on some macOS versions
     trafficLightPosition: { x: 14, y: 14 },
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
     icon: join(__dirname, '../../build/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),

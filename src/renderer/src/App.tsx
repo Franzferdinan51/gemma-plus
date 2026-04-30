@@ -26,8 +26,16 @@ export default function App() {
       console.log('[gemma]', ev.chunk)
     })
     let unsub: (() => void) | undefined
+    const meshTimer = setTimeout(async () => {
+      try {
+        const ms = await window.api.meshStatus()
+        setMeshStatus(ms)
+      } catch { /* mesh optional */ }
+    }, 2000)
+
     ;(async () => {
       unsub = window.api.onSetupStatus((status) => {
+        clearTimeout(meshTimer)
         setState((prev) => {
           if (status.stage === 'ready') {
             if (prev.phase === 'switching') {
@@ -47,13 +55,10 @@ export default function App() {
           return { phase: 'setup', status, model: m, mode: prev.mode }
         })
       })
-      // Check mesh status on boot
-      try {
-        const ms = await window.api.meshStatus()
-        setMeshStatus(ms)
-      } catch {}
+      // Show WelcomeScreen immediately — do NOT auto-start backend
+      setState({ phase: 'setup', status: { stage: 'checking', message: 'Welcome' }, model })
     })()
-    return () => { rawUnsub(); unsub?.() }
+    return () => { clearTimeout(meshTimer); rawUnsub(); unsub?.() }
   }, [])
 
   const handleSwitchModel = useCallback(async (newModel: string) => {
